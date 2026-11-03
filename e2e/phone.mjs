@@ -28,8 +28,15 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 const waitFor = async (fn, arg, ms = 30000) => { const t = Date.now(); for (;;) { const v = await page.evaluate(fn, arg).catch(() => false); if (v) return v; if (Date.now() - t > ms) throw new Error('等待逾時：' + fn); await new Promise((r) => setTimeout(r, 200)); } };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-// 用 adb 在手機上點螢幕（CSS 座標換成實體像素）
-const tap = async (x, y) => { const dpr = await page.evaluate(() => devicePixelRatio); adb('shell', 'input', 'tap', String(Math.round(x * dpr)), String(Math.round(y * dpr))); await sleep(450); };
+// App 視窗在螢幕上的起點（橫放時鏡頭挖孔那一側會留黑邊，視窗不從 0 開始）
+const winOrigin = () => {
+  const d = adb('shell', 'dumpsys', 'window', 'windows');
+  const i = d.search(/Window\{\w+ u0 com\.achir\.xiaokefreecell\/[\w.]+MainActivity\}/);
+  const m = i >= 0 && /Frames: [^\n]*?\bframe=\[(-?\d+),(-?\d+)\]/.exec(d.slice(i));
+  return m ? { x: +m[1], y: +m[2] } : { x: 0, y: 0 };
+};
+// 用 adb 在手機上點螢幕（CSS 座標換成實體像素，再加上視窗起點）
+const tap = async (x, y) => { const dpr = await page.evaluate(() => devicePixelRatio); const o = winOrigin(); adb('shell', 'input', 'tap', String(Math.round(o.x + x * dpr)), String(Math.round(o.y + y * dpr))); await sleep(450); };
 
 try {
   const info = await page.evaluate(() => ({ android: !!window.XiaokeAndroid, mobile: document.documentElement.classList.contains('mobile'), w: innerWidth, h: innerHeight, dpr: devicePixelRatio, ver: JSON.parse(window.XiaokeAndroid.appInfo()).version, webgl: !!document.createElement('canvas').getContext('webgl2'), cores: navigator.hardwareConcurrency }));
@@ -73,7 +80,8 @@ try {
   check('手指點一下選起牌', await page.evaluate(() => !!window.__xkf.sel));
   p = await page.evaluate(() => window.__xkfTable.screenOf(0, null, 9));
   await tap(p.x, p.y);
-  check('再點暫存格就搬過去', await page.evaluate((c) => window.__xkf.players[0].game.cells.includes(c), card));
+  check('再點暫存格就搬過去', await waitFor((c) => window.__xkf.players[0].game.cells.includes(c), card, 3000).catch(() => false),
+    JSON.stringify(await page.evaluate(() => ({ cells: window.__xkf.players[0].game.cells, sel: window.__xkf.sel }))) + ' card=' + card);
   shotPhone('3-moved');
   // 提示與軍師接手
   await page.evaluate(() => document.querySelector('#btnHint').click());
