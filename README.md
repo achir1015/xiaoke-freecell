@@ -1,4 +1,4 @@
-# 小柯機器人接龍遊戲
+# 小柯機器人接龍遊戲 https://achir1015.github.io/xiaoke-freecell/online/
 
 3D 新接龍（FreeCell）同局比快遊戲。遊戲開發：吳玉柱 先生 與 Claude AI Opus 5.5。
 
