@@ -1,0 +1,82 @@
+/* 新接龍專用：比賽面板、倒數、比數、示範牌桌 */
+.mode-grid.four { grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 14px; }
+.mode-grid.four .mode-card .two-col { grid-template-columns: 1fr 1fr; gap: 8px; }
+.mode-grid.four .mode-card p { min-height: 66px; }
+.deal-in { width: 120px; }
+.solo-card { border-color: rgba(79,163,224,.35); }
+
+/* 比賽面板：上方對手、左下自己 */
+.hud { position: absolute; z-index: 3; pointer-events: none; }
+.hud.opp { left: 12px; top: 8px; }
+.hud.me { left: 12px; bottom: 30px; }
+.hud-card { display: flex; gap: 10px; align-items: center; padding: 6px 10px 6px 6px; border-radius: 12px; background: rgba(8,19,14,.84); border: 2px solid rgba(232,192,96,.25); box-shadow: 0 6px 18px rgba(0,0,0,.45); min-width: 230px; }
+.hud-card.winner { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232,192,96,.3), 0 6px 18px rgba(0,0,0,.45); }
+.hud-info { display: flex; flex-direction: column; gap: 3px; min-width: 150px; }
+.hud-wins { margin-left: 8px; font-size: 12px; color: var(--gold); font-weight: 700; }
+.hud-bar { position: relative; height: 16px; border-radius: 8px; background: #0b2418; border: 1px solid #2a5a40; overflow: hidden; }
+.hud-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #2f9a5f, #8be08f); transition: width .35s; }
+.hud-bar em { position: relative; display: block; text-align: center; font-style: normal; font-size: 11px; line-height: 14px; color: #fff; text-shadow: 0 1px 2px #000; }
+.hud-stat { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); }
+.hud-time { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 700; }
+.hud-mini { width: 150px; height: 110px; border-radius: 8px; display: block; border: 1px solid rgba(255,226,150,.25); }
+.tag.me { background: #4a3a10; color: var(--gold); }
+.tag.done { background: #1f6a3a; color: #d8ffe0; }
+.tag.quit { background: #5a1f1f; color: #ffd8d8; }
+
+/* 比數與時間：右上角 */
+.score-badge { position: absolute; right: 12px; top: 8px; z-index: 3; pointer-events: none; text-align: right; display: flex; flex-direction: column; gap: 2px; padding: 6px 12px; border-radius: 12px; background: rgba(8,19,14,.78); border: 1px solid rgba(232,192,96,.2); }
+.score-badge:empty { display: none; }
+.sb-deal { color: var(--gold); font-weight: 700; font-size: 15px; }
+.sb-score { font-size: 13px; color: var(--text); }
+.sb-time { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sb-time.urgent { color: #ff7a6a; animation: pulse 1s ease-in-out infinite; }
+
+/* 倒數 */
+.countdown { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 9; font-size: 120px; font-weight: 900; color: var(--gold); text-shadow: 0 6px 28px rgba(0,0,0,.7), 0 0 30px rgba(232,192,96,.5); pointer-events: none; }
+.countdown.pop { animation: cdPop .9s ease-out; }
+@keyframes cdPop { 0% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } 25% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(.92); opacity: .9; } }
+
+/* 對陣畫面：兩人 */
+.vs-row.two { align-items: center; }
+.vs-x { font-size: 48px; font-weight: 900; color: var(--gold); text-shadow: 0 4px 16px rgba(0,0,0,.6); }
+
+/* 結果表 */
+.res-table { border-collapse: collapse; margin: 10px auto; min-width: 380px; }
+.res-table th, .res-table td { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.res-table th { color: var(--muted); font-weight: 600; font-size: 13px; }
+.res-table tr.win td { color: var(--gold); font-weight: 700; }
+.res-table tr.me td:first-child { text-decoration: underline; text-decoration-color: var(--gold); }
+.res-table .mini-av { width: 28px; height: 34px; vertical-align: middle; margin-right: 6px; border-radius: 4px; }
+.res-score { text-align: center; font-size: 18px; font-weight: 700; margin-top: 6px; }
+
+.pause-btn.hidden { display: none; }
+.mode-aivai .play-only, .mode-replay .play-only { display: none; }
+.aivai-only { display: none; }
+.mode-aivai .aivai-only { display: block; }
+.mode-solo #btnProxy { display: block; }
+
+/* 教學：示範牌桌 */
+.gb-board { position: relative; width: 100%; height: min(54vh, 460px); }
+.gb-slot { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 2px dashed rgba(255,255,255,.3); color: rgba(255,255,255,.35); font-size: 20px; font-weight: 700; }
+.gb-slot.found { border-style: solid; border-color: rgba(255,226,150,.55); color: rgba(255,226,150,.55); font-size: 30px; }
+.gb-layer { position: absolute; inset: 0; }
+.gb-card { position: absolute; border-radius: 7px; box-shadow: 0 4px 10px rgba(0,0,0,.45); transition: left .6s cubic-bezier(.3,.7,.2,1), top .6s cubic-bezier(.3,.7,.2,1), transform .25s; }
+.gb-card.hl { outline: 3px solid #ffe27a; transform: translateY(-6px); box-shadow: 0 10px 22px rgba(0,0,0,.55); }
+.gb-note { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(8,19,14,.82); color: var(--gold); font-weight: 700; white-space: nowrap; animation: fade .6s ease 1s backwards; }
+.gd-opt { width: 64px; border-radius: 6px; display: block; }
+.gd-choices button:has(.gd-opt) { padding: 6px; }
+
+@media (max-width: 1150px) {
+  .mode-grid.four { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+}
+@media (max-height: 760px) {
+  .hud-mini { width: 120px; height: 88px; }
+  .hud-card { min-width: 0; gap: 7px; padding: 4px 8px 4px 4px; }
+  .countdown { font-size: 90px; }
+}
+
+/* 牌譜庫 */
+.records .kb-stats { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.kb-filter .num-in { width: 110px; }
+@media (max-width: 1200px) { .records .kb-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.net-row button { white-space: nowrap; }
