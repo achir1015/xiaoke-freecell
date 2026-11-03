@@ -249,7 +249,7 @@ function renderHome() {
     h('h2', {}, 'A　真人對 AI'),
     h('p', { class: 'muted' }, '不需要網路。您和 AI 拿同一局牌同時開始，先把 52 張全部送上回收座的人贏。AI 軍師在旁指點，也可以接手您的主位。'),
     h('div', { class: 'two-col' }, h('div', {}, h('label', {}, 'AI 難度：'), lvA), h('div', {}, h('label', {}, '局數：'), rdA)),
-    h('div', { class: 'two-col' }, h('div', {}, h('label', {}, '每局時限：'), lmA), h('div', {}, h('label', {}, '第一局牌局號碼：'), dlA)),
+    h('div', { class: 'two-col' }, h('div', {}, h('label', {}, '每局時限：'), lmA), h('div', {}, h('label', { title: '第一局的牌局號碼' }, '首局牌號：'), dlA)),
     h('button', { class: 'primary big', id: 'startAI', onclick: () => {
       const cfg = { level: Number(lvA.value), rounds: Number(rdA.value), limit: Number(lmA.value), deal: Number(dlA.value) || 0 };
       saveSettings({ match: cfg });
