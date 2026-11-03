@@ -359,9 +359,9 @@ export class Table3D {
 
   setView(v) {
     this.viewMode = v;
-    const p = this.mobile ? [0, 205, 70] : v === 'top' ? [0, 178, 26] : v === 'low' ? [0, 84, 118] : v === 'wide' ? [0, 215, 92] : [0, 128, 96];
+    const p = this.mobile ? (v === 'wide' ? [0, 205, 70] : [0, 100, 24]) : v === 'top' ? [0, 178, 26] : v === 'low' ? [0, 84, 118] : v === 'wide' ? [0, 215, 92] : [0, 128, 96];
     this.camera.position.set(...p);
-    this.controls.target.set(0, 0, this.mobile ? 14 : v === 'low' ? 8 : v === 'wide' ? -32 : v === 'top' ? 14 : 16);
+    this.controls.target.set(0, 0, this.mobile ? (v === 'wide' ? -30 : 8) : v === 'low' ? 8 : v === 'wide' ? -32 : v === 'top' ? 14 : 16);
     this.controls.update();
   }
 

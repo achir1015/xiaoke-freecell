@@ -1,4 +1,4 @@
-// 手機版（Android）與網頁版的 window.xk：取代桌面版主程序提供的功能。
+// 手機版（Android、iPhone／iPad）與線上版的 window.xk：取代桌面版主程序提供的功能。
 // 桌面版有 preload 提供 window.xk，這個檔案就什麼都不做。
 // Android App 由原生程式提供 window.XiaokeAndroid（語音、存檔、更新、開網址）；在一般瀏覽器測試時改用網頁功能。
 (function () {
@@ -7,8 +7,8 @@
   var A = window.XiaokeAndroid || null;
   var isAndroid = !!A;
   // iPhone／iPad App：WKWebView 的訊息通道（非同步，回傳 Promise）
-  var isIOS = !!(window.XiaokeIOS && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.xkb);
-  function ios(cmd, args) { return window.webkit.messageHandlers.xkb.postMessage({ cmd: cmd, args: args || [] }); }
+  var isIOS = !!(window.XiaokeIOS && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.xkf);
+  function ios(cmd, args) { return window.webkit.messageHandlers.xkf.postMessage({ cmd: cmd, args: args || [] }); }
   var ua = navigator.userAgent || '';
   var mobile = isAndroid || /Android|iPhone|iPad|Mobile/i.test(ua) || /[?&]mobile=1/.test(location.search);
   // iPad 的 WebView 用電腦版 UA（Macintosh），走電腦版版面＋html.touch
@@ -21,15 +21,15 @@
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function appVersion() {
     if (isAndroid) { var i = parse(A.appInfo()); if (i && i.version) return i.version; }
-    return window.XKB_VERSION || '0';
+    return window.XKF_VERSION || '0';
   }
 
   // ---------------- 設定（localStorage） ----------------
-  var SKEY = 'xkb.settings';
+  var SKEY = 'xkf.settings';
   function defaults() {
     return {
-      playerName: '牌手', profile: null, voiceCall: true, sfxVolume: 0.8,
-      match: { boards: 8, level: 2 },
+      playerName: '玩家', profile: null, voiceCall: true, sfxVolume: 0.8,
+      match: { rounds: 3, level: 1, limit: 0, deal: 0 },
       server: { mode: 'public', host: '', port: 9000, path: '/', key: 'peerjs', secure: false },
       stun: 'stun:stun.l.google.com:19302\nstun:stun.cloudflare.com:3478',
       turn: { urls: '', username: '', credential: '' },
@@ -52,7 +52,7 @@
     s.advisor = { model: settings.advisor.model, effort: settings.advisor.effort, hasKey: !!settings.advisor.apiKey, envKey: false };
     return s;
   }
-  var KEYS = ['playerName', 'profile', 'voiceCall', 'sfxVolume', 'stun', 'sfx', 'view', 'autoUpdate', 'aivai', 'netCfg', 'tts'];
+  var KEYS = ['playerName', 'profile', 'voiceCall', 'sfxVolume', 'stun', 'sfx', 'view', 'autoUpdate', 'aivai', 'netCfg', 'solo', 'tts'];
   function setSettings(p) {
     p = p || {};
     KEYS.forEach(function (k) { if (k in p) settings[k] = p[k]; });
@@ -71,7 +71,7 @@
   function db() {
     if (dbp) return dbp;
     dbp = new Promise(function (res, rej) {
-      var r = indexedDB.open('xiaoke-bridge', 1);
+      var r = indexedDB.open('xiaoke-freecell', 1);
       r.onupgradeneeded = function () {
         var d = r.result;
         if (!d.objectStoreNames.contains('games')) d.createObjectStore('games', { keyPath: 'id' });
@@ -99,7 +99,7 @@
     return '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + '-' + Math.random().toString(16).slice(2, 8);
   }
   function summary(g) {
-    return { id: g.id, date: g.date, mode: g.mode, names: g.names || [], boards: (g.history || []).length, mySeat: g.mySeat, finished: !!g.finished };
+    return { id: g.id, date: g.date, mode: g.mode, names: g.names || [], rounds: (g.history || []).length, me: g.me, finished: !!g.finished };
   }
 
   // ---------------- 選擇檔案（匯入牌譜、加入音樂） ----------------
@@ -155,8 +155,8 @@
   // ---------------- 版本更新 ----------------
   var progressFns = [];
   var updInfo = null;
-  var REPO = 'achir1015/xiaoke-bridge';
-  var IOS_INSTALL_PAGE = 'https://achir1015.github.io/xiaoke-bridge/ios/';
+  var REPO = 'achir1015/xiaoke-freecell';
+  var IOS_INSTALL_PAGE = 'https://achir1015.github.io/xiaoke-freecell/ios/';
   function cmpVer(a, b) {
     var pa = String(a).replace(/^v/, '').split('.').map(Number), pb = String(b).replace(/^v/, '').split('.').map(Number);
     for (var i = 0; i < 3; i++) { var d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; }
@@ -264,7 +264,7 @@
     var Anthropic = await sdk();
     try {
       var c = await core();
-      var msg = await client(Anthropic).beta.messages.create(c.buildParams(settings.advisor, [{ role: 'user', content: '請用一句話向牌手打招呼。' }], 2000, 'low'));
+      var msg = await client(Anthropic).beta.messages.create(c.buildParams(settings.advisor, [{ role: 'user', content: '請用一句話向接龍玩家打招呼。' }], 2000, 'low'));
       return { ok: true, text: msg.content.filter(function (b) { return b.type === 'text'; }).map(function (b) { return b.text; }).join(''), model: msg.model };
     } catch (err) { return { ok: false, error: explain(Anthropic, err) }; }
   }
@@ -292,7 +292,7 @@
   window.xk = {
     settings: { get: function () { return Promise.resolve(pub()); }, set: function (p) { return Promise.resolve(setSettings(p)); } },
     sys: {
-      info: function () { return Promise.resolve({ platform: isAndroid ? 'android' : isIOS ? 'ios' : 'web', arch: '', version: appVersion(), packaged: isAndroid, profile: '', electron: '', mobile: mobile }); },
+      info: function () { return Promise.resolve({ platform: isAndroid ? 'android' : isIOS ? 'ios' : 'web', arch: '', version: appVersion(), packaged: isAndroid, profile: '', fast: false, electron: '', mobile: mobile }); },
       askMicrophone: function () { return Promise.resolve(true); },
     },
     win: { attention: function () { try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) { /* 不支援 */ } return Promise.resolve(); } },
@@ -305,7 +305,7 @@
       delete: function (id) { return tx('games', 'readwrite', function (s) { s.delete(id); }).then(function () { return true; }); },
       export: function (name, text) { return saveText(name, text); },
       pickImport: function () {
-        return pickFiles('.pbn,.json,.txt,text/plain,application/json', true).then(function (files) {
+        return pickFiles('.txt,.json,.fcs,text/plain,application/json', true).then(function (files) {
           return Promise.all(files.slice(0, 500).map(function (f) {
             if (f.size > 5 * 1024 * 1024) return { name: f.name, error: '檔案太大' };
             return f.arrayBuffer().then(function (buf) { return { name: f.name, text: decodeText(buf) }; });
@@ -338,7 +338,7 @@
       check: checkUpdate,
       download: downloadUpdate,
       install: function () { return Promise.resolve({ manual: true, android: isAndroid }); },
-      openPage: function () { var u = (updInfo && updInfo.page) || 'https://github.com/achir1015/xiaoke-bridge/releases/latest'; if (isAndroid) A.openUrl(u); else if (isIOS) ios('open_url', [u]); else window.open(u, '_blank'); return Promise.resolve(); },
+      openPage: function () { var u = (updInfo && updInfo.page) || 'https://github.com/achir1015/xiaoke-freecell/releases/latest'; if (isAndroid) A.openUrl(u); else if (isIOS) ios('open_url', [u]); else window.open(u, '_blank'); return Promise.resolve(); },
       onProgress: function (fn) { progressFns.push(fn); return function () { progressFns = progressFns.filter(function (f) { return f !== fn; }); }; },
     },
     advisor: {

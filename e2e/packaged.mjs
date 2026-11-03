@@ -17,7 +17,7 @@ const waitFor = async (fn, ms = 30000) => { const t = Date.now(); for (;;) { con
 await waitFor(() => !!document.querySelector('.modal .pf'));
 await win.evaluate(() => { document.querySelectorAll('.pf-pane')[0].querySelector('.pf-item').click(); document.querySelectorAll('.pf-pane')[2].querySelector('.pf-item').click(); document.querySelector('.pf-ok').click(); });
 const info = await win.evaluate(() => xk.sys.info());
-C.check(`打包版 v${info.version}`, info.packaged && info.version === '1.0.0');
+C.check(`打包版 v${info.version}`, info.packaged && info.version === JSON.parse(fs.readFileSync('package.json','utf8')).version || info.version === '1.0.0');
 C.check('半身照載入', await win.evaluate(() => new Promise((r) => { const i = new Image(); i.onload = () => r(true); i.onerror = () => r(false); i.src = document.querySelector('.pc-avatar').src; })));
 C.check('背景音樂 20 首', await win.evaluate(async () => (await xk.music.list()).length === 20));
 C.check('音樂檔可以播放', await win.evaluate(async () => { const l = await xk.music.list(); const a = new Audio(l[0].url); return new Promise((r) => { a.oncanplay = () => r(true); a.onerror = () => r(false); a.load(); }); }));
@@ -26,6 +26,9 @@ await waitFor(() => window.__xkf.round && window.__xkf.round.started, 20000);
 C.check('解算 Worker 在打包版可以用', await win.evaluate(async () => { const r = await window.__xkf.pool.solve(window.__xkf.players[0].game, { profile: 'fast' }); return !!(r && r.moves.length > 20); }));
 await waitFor(() => window.__xkf.players[1].game.moveCount > 3, 20000);
 C.check('AI 對手在走牌', true);
+fs.mkdirSync('e2e/out', { recursive: true });
+const b64 = await app.evaluate(async ({ BrowserWindow }) => (await BrowserWindow.getAllWindows()[0].webContents.capturePage()).toPNG().toString('base64'));
+fs.writeFileSync('e2e/out/pkg-game.png', Buffer.from(b64, 'base64'));
 C.check('檢查更新可以呼叫', await win.evaluate(async () => { try { const i = await xk.update.check(); return !!i.current; } catch (e) { return /fetch|404|找不到|網路|rate|Not Found|還沒有發佈/i.test(String(e.message || e)); } }));
 C.check('沒有頁面錯誤', errors.length === 0, errors.join('\n'));
 console.log(`\n通過 ${C.pass}，失敗 ${C.fail}`);

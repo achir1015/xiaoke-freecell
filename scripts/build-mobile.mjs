@@ -1,4 +1,4 @@
-// 產生手機版（Android）用的網頁：mobile/www
+// 產生手機版（Android、iPhone／iPad）與線上版用的網頁：mobile/www
 // 和桌面版同一份程式；把 node_modules 的函式庫複製到 vendor/、打包 Claude SDK、調整 index.html 路徑。
 // 用法：node scripts/build-mobile.mjs
 import fs from 'fs';
@@ -21,7 +21,6 @@ fs.rmSync(path.join(OUT, 'package.json'), { force: true });
 // 2. 素材（音樂、頭像）
 copy('assets/music', 'assets/music');
 copy('assets/portraits', 'assets/portraits');
-copy('assets/models', 'assets/models');
 fs.rmSync(path.join(OUT, 'assets/portraits/_sheet.html'), { force: true });
 // 3. 函式庫
 fs.mkdirSync(path.join(OUT, 'vendor'), { recursive: true });
@@ -29,12 +28,8 @@ fs.copyFileSync(path.join(ROOT, 'node_modules/three/build/three.module.js'), pat
 fs.copyFileSync(path.join(ROOT, 'node_modules/peerjs/dist/peerjs.min.js'), path.join(OUT, 'vendor/peerjs.min.js'));
 fs.copyFileSync(path.join(ROOT, 'src/renderer/vendor/OrbitControls.js'), path.join(OUT, 'vendor/OrbitControls.js'));
 await build({ entryPoints: [path.join(ROOT, 'mobile/anthropic-entry.mjs')], bundle: true, format: 'esm', platform: 'browser', minify: true, outfile: path.join(OUT, 'vendor/anthropic.js'), logLevel: 'warning' });
-// ONNX Runtime（WASM 版）
-const ortOut = path.join(OUT, 'node_modules/onnxruntime-web/dist');
-fs.mkdirSync(ortOut, { recursive: true });
-for (const f of ['ort.wasm.min.mjs', 'ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.wasm']) fs.copyFileSync(path.join(ROOT, 'node_modules/onnxruntime-web/dist', f), path.join(ortOut, f));
 // 4. 版本號、圖示
-fs.writeFileSync(path.join(OUT, 'js/version.js'), `window.XKB_VERSION = ${JSON.stringify(pkg.version)};\n`);
+fs.writeFileSync(path.join(OUT, 'js/version.js'), `window.XKF_VERSION = ${JSON.stringify(pkg.version)};\n`);
 fs.mkdirSync(path.join(OUT, 'build'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'build/icon.png'), path.join(OUT, 'build/icon.png'));
 // 素材路徑：桌面版的 ../../ 是專案根目錄，手機版與線上版的根目錄就是 www，線上版又在 /online/ 底下，所以都改成相對路徑
